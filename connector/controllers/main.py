@@ -70,6 +70,14 @@ class RunJobController(http.Controller):
 
     @http.route('/connector/runjob', type='http', auth='none')
     def runjob(self, db, job_uuid, **kw):
+        # !!! fix "request not bound to a database" when generating
+        #     QWeb reports on a multi-db instance
+        if not http.request.session.db or http.request.session.db != db:
+            http.request.session.db = db
+        # !!! fix "'HttpRequest' object has no attribute 'website_multilang'"
+        #     when generating QWeb reports with "website" installed.
+        if not hasattr(http.request, 'website_multilang'):
+            setattr(http.request, 'website_multilang', None)
 
         session_hdl = ConnectorSessionHandler(db,
                                               openerp.SUPERUSER_ID)
